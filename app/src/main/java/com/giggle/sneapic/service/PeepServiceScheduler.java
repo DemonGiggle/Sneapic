@@ -11,7 +11,7 @@ import com.commonsware.cwac.wakeful.WakefulIntentService;
  * Created by giggle on 2014/6/18.
  */
 public class PeepServiceScheduler implements WakefulIntentService.AlarmListener {
-    private static final long FREQUENCY = 10 * 1000;
+    private static final long FREQUENCY = 30 * 1000;
 
     @Override
     public void scheduleAlarms(AlarmManager alarmManager, PendingIntent pendingIntent, Context context) {
