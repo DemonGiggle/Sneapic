@@ -1,0 +1,1 @@
+<WakefulIntentService listener="com.giggle.sneapic.service.PeepServiceScheduler"/>
