@@ -17,6 +17,7 @@ import java.io.IOException;
 public class PeepService extends WakefulIntentService {
     private static final String TAG = "PeepService";
 
+    private EasyCamera camera;
     private SurfaceHolder surface;
 
     public PeepService() {
@@ -26,24 +27,28 @@ public class PeepService extends WakefulIntentService {
     EasyCamera.PictureCallback pictureCallback = new EasyCamera.PictureCallback() {
         public void onPictureTaken(byte[] data, EasyCamera.CameraActions actions) {
             Log.d(TAG, "Picture taken, size = " + data.length);
+            camera.close();
         }
     };
 
     @Override
     protected void doWakefulWork(Intent intent) {
-        EasyCamera camera = DefaultEasyCamera.open();
-        try {
-            EasyCamera.CameraActions actions = camera.startPreview(surface);
-            actions.takePicture(EasyCamera.Callbacks.create().withJpegCallback(pictureCallback));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Log.d(TAG, "service finished");
     }
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "service launched");
         super.onCreate();
         SurfaceView view = new SurfaceView(this);
         surface = view.getHolder();
+        camera = DefaultEasyCamera.open();
+
+        try {
+            EasyCamera.CameraActions actions = camera.startPreview(surface);
+            actions.takePicture(EasyCamera.Callbacks.create().withJpegCallback(pictureCallback));
+        } catch (IOException e) {
+            Log.d(TAG, e.toString());
+        }
     }
 }
