@@ -1,1 +1,3 @@
 include ':app'
+include ':library:third_party:cwac-wakeful'
+include ':library:third_party:EasyCamera'
