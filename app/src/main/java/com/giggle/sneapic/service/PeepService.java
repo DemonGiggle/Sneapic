@@ -1,11 +1,14 @@
 package com.giggle.sneapic.service;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.WindowManager;
 
 import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.easycamera.DefaultEasyCamera;
@@ -30,11 +33,14 @@ public class PeepService extends WakefulIntentService {
     private File photoOutputFolder;
 
     private EasyCamera camera;
-    private SurfaceHolder surface;
+    private SurfaceView surface;
 
     private final Lock lock = new ReentrantLock();
     private Condition picTake = lock.newCondition();
+
     private volatile boolean isPhotoTaken;
+
+    private WindowManager windowManager;
 
     public PeepService() {
         super("PeepService");
@@ -63,7 +69,7 @@ public class PeepService extends WakefulIntentService {
             try {
                 picTake.signal();
             } catch (IllegalMonitorStateException e) {
-                Log.d(TAG, e.toString());
+                e.printStackTrace();
             }
         }
     };
@@ -73,21 +79,6 @@ public class PeepService extends WakefulIntentService {
         isPhotoTaken = false;
         lock.lock();
 
-        // initialize picture size
-        final Camera.Parameters parameters = camera.getParameters();
-        final Camera.Size size = getLargestSize(parameters);
-        parameters.setPictureSize(size.width, size.height);
-        camera.setParameters(parameters);
-        camera.setDisplayOrientation(0);
-
-        // start to take picture
-        try {
-            EasyCamera.CameraActions actions = camera.startPreview(surface);
-            actions.takePicture(EasyCamera.Callbacks.create().withJpegCallback(pictureCallback));
-        } catch (IOException e) {
-            Log.d(TAG, e.toString());
-        }
-
         // Wait for photo taken
         Log.d(TAG, "Check is photo taken");
         while (!isPhotoTaken) {
@@ -95,8 +86,15 @@ public class PeepService extends WakefulIntentService {
                 picTake.await(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            } catch (IllegalMonitorStateException e) {
+                e.printStackTrace();
             } finally {
-                lock.unlock();
+
+                try {
+                    lock.unlock();
+                } catch (IllegalMonitorStateException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -135,8 +133,52 @@ public class PeepService extends WakefulIntentService {
             photoOutputFolder.mkdir();
         }
 
-        SurfaceView view = new SurfaceView(this);
-        surface = view.getHolder();
+        windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                10, 10,
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
+        );
+
+        surface = new SurfaceView(this);
+        surface.setZOrderOnTop(true);
+        surface.getHolder().setFormat(PixelFormat.TRANSPARENT);
+
+        surface.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                Log.d(TAG, "surface created");
+
+                // initialize picture size
+                final Camera.Parameters parameters = camera.getParameters();
+                final Camera.Size size = getLargestSize(parameters);
+                parameters.setPictureSize(size.width, size.height);
+                camera.setParameters(parameters);
+                camera.setDisplayOrientation(0);
+
+                // start to take picture
+                try {
+                    EasyCamera.CameraActions actions = camera.startPreview(surface.getHolder());
+                    actions.takePicture(EasyCamera.Callbacks.create().withJpegCallback(pictureCallback));
+                } catch (IOException e) {
+                    Log.d(TAG, e.toString());
+                }
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d(TAG, "surface changed");
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d(TAG, "surface destroyed");
+            }
+        });
+
+        windowManager.addView(surface, params);
+
         camera = DefaultEasyCamera.open();
     }
 
@@ -144,5 +186,7 @@ public class PeepService extends WakefulIntentService {
     public void onDestroy() {
         super.onDestroy();
         camera.close();
+
+        windowManager.removeView(surface);
     }
 }
