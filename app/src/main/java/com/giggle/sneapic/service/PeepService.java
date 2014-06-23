@@ -59,6 +59,7 @@ public class PeepService extends WakefulIntentService {
 
             //final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
             final SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
+            final SimpleDateFormat formatter2 = new SimpleDateFormat("MM/dd HH:mm:ss");
             final String filename = formatter.format(System.currentTimeMillis());
 
             FileOutputStream fos;
@@ -77,8 +78,8 @@ public class PeepService extends WakefulIntentService {
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
             builder.setContentTitle(getString(R.string.notification_last_taken_title))
-                   .setContentText(getString(R.string.notification_last_taken_content) + formatter.format(System.currentTimeMillis()))
-                   .setSmallIcon(R.drawable.app_icon)
+                   .setContentText(getString(R.string.notification_last_taken_content) + formatter2.format(System.currentTimeMillis()))
+                   .setSmallIcon(R.drawable.mammoth_happy)
                    .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, activity, PendingIntent.FLAG_UPDATE_CURRENT));
             notificationManager.notify(R.string.tag_notificaiton_last_taken, builder.build());
 
