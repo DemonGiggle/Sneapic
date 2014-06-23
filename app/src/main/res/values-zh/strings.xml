@@ -4,7 +4,7 @@
     <string name="app_name">Sneapic</string>
     <string name="hello_world">Hello world!</string>
     <string name="tag_notificaiton_last_taken">Unique Id</string>
-    <string name="notification_last_taken_title">Sneapic Take Picture</string>
-    <string name="notification_last_taken_content">Last taken time: </string>
+    <string name="notification_last_taken_title">Sneapic 拍照囉</string>
+    <string name="notification_last_taken_content">上次拍照時間：</string>
 
 </resources>

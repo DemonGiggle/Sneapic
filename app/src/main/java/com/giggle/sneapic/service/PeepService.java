@@ -1,10 +1,13 @@
 package com.giggle.sneapic.service;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -13,6 +16,8 @@ import android.view.WindowManager;
 import com.commonsware.cwac.wakeful.WakefulIntentService;
 import com.easycamera.DefaultEasyCamera;
 import com.easycamera.EasyCamera;
+import com.giggle.sneapic.MainActivity;
+import com.giggle.sneapic.R;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,6 +46,7 @@ public class PeepService extends WakefulIntentService {
     private volatile boolean isPhotoTaken;
 
     private WindowManager windowManager;
+    private NotificationManager notificationManager;
 
     public PeepService() {
         super("PeepService");
@@ -64,6 +70,16 @@ public class PeepService extends WakefulIntentService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            // Display notification icon
+            final Intent activity = new Intent(getApplicationContext(), MainActivity.class);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            builder.setContentTitle(getString(R.string.notification_last_taken_title))
+                   .setContentText(getString(R.string.notification_last_taken_content) + formatter.format(System.currentTimeMillis()))
+                   .setSmallIcon(R.drawable.app_icon)
+                   .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, activity, PendingIntent.FLAG_UPDATE_CURRENT));
+            notificationManager.notify(R.string.tag_notificaiton_last_taken, builder.build());
 
             isPhotoTaken = true;
             try {
@@ -103,7 +119,6 @@ public class PeepService extends WakefulIntentService {
 
     private Camera.Size getLargestSize(Camera.Parameters parameters) {
         Camera.Size result = null;
-
         for (final Camera.Size size : parameters.getSupportedPictureSizes()) {
             if (result == null) {
                 result = size;
@@ -132,6 +147,8 @@ public class PeepService extends WakefulIntentService {
         if (!photoOutputFolder.exists()) {
             photoOutputFolder.mkdir();
         }
+
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
