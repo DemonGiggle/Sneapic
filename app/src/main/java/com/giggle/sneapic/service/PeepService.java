@@ -18,6 +18,7 @@ import com.easycamera.DefaultEasyCamera;
 import com.easycamera.EasyCamera;
 import com.giggle.sneapic.MainActivity;
 import com.giggle.sneapic.R;
+import com.giggle.sneapic.SneapicApplication;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +44,7 @@ public class PeepService extends WakefulIntentService {
     private final Lock lock = new ReentrantLock();
     private Condition picTake = lock.newCondition();
 
-    private volatile boolean isPhotoTaken;
+    private volatile boolean isPhotoTaken = false;
 
     private WindowManager windowManager;
     private NotificationManager notificationManager;
@@ -92,7 +93,6 @@ public class PeepService extends WakefulIntentService {
 
     @Override
     protected void doWakefulWork(Intent intent) {
-        isPhotoTaken = false;
         lock.lock();
 
         // Wait for photo taken
@@ -140,6 +140,13 @@ public class PeepService extends WakefulIntentService {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "service launched");
+
+        if (!SneapicApplication.getPeepConfig().isEnableAutoTakePic()) {
+            Log.d(TAG, "auto take pic config is disabled, just leave");
+            isPhotoTaken = true;
+            return;
+        }
+
         // create folder for
         photoOutputFolder = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "SneaPic");
@@ -202,8 +209,13 @@ public class PeepService extends WakefulIntentService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        camera.close();
 
-        windowManager.removeView(surface);
+        if (camera != null) {
+            camera.close();
+        }
+
+        if (windowManager != null) {
+            windowManager.removeView(surface);
+        }
     }
 }

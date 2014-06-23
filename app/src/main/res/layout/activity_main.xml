@@ -2,11 +2,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/black"
     tools:context="${relativePackage}.${activityClass}">
 
     <TextView
-        android:text="@string/hello_world"
+        android:id="@+id/title"
+        android:text="@string/enable_auto_take_pic"
+        android:textColor="@android:color/white"
+        android:layout_centerInParent="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <ToggleButton
+        android:id="@+id/auto_take_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"/>
 
 </RelativeLayout>

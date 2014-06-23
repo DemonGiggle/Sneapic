@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Sneapic</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="enable_auto_take_pic">Enable auto take picture?</string>
     <string name="tag_notificaiton_last_taken">Unique Id</string>
     <string name="notification_last_taken_title">Sneapic Take Picture</string>
     <string name="notification_last_taken_content">Last taken time: </string>
