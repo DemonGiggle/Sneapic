@@ -178,15 +178,22 @@ public class PeepService extends WakefulIntentService {
                 final Camera.Parameters parameters = camera.getParameters();
                 final Camera.Size size = getLargestSize(parameters);
                 parameters.setPictureSize(size.width, size.height);
+                parameters.set("flash-mode", "off");
                 camera.setParameters(parameters);
                 camera.setDisplayOrientation(0);
 
                 // start to take picture
                 try {
                     EasyCamera.CameraActions actions = camera.startPreview(surface.getHolder());
+
+                    // Stop for a while, or the camera will not heed flash mode off setting
+                    Thread.sleep(1000);
+
                     actions.takePicture(EasyCamera.Callbacks.create().withJpegCallback(pictureCallback));
                 } catch (IOException e) {
                     Log.d(TAG, e.toString());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
 
